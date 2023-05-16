@@ -2,6 +2,7 @@ const {Schema, model} = require('mongoose');
 
 const Order = new Schema({
     type: {type: String, required: true},
+    count: {type: Number, required: true},
     canvasList: [{
         type: {
             id: {type: Number, required: true},
@@ -13,7 +14,7 @@ const Order = new Schema({
             imgPath: {type: String, required: true},
         }
     }],
-    user:{type: String, ref: 'Role'}
+    user: {type: String, ref: 'Role'}
 })
 
 module.exports = model('Order', Order)
