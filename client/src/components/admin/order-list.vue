@@ -1,17 +1,19 @@
 <template>
   <div class="order-list">
-    <img v-if="testImage" :src="testImage" alt="">
-
     <div class="order-item" v-for="order in orderList" :key="order._id">
+      <p><span>Пользователь: </span><span>{{ order.userEmail }}</span></p>
       <p><span>Тип: </span><span>{{ getRusOrderTypeName(order.type) }}</span></p>
+      <p><span>Количество: </span><span>{{ order.count ?? 1 }}</span></p>
       <p><span>Изображения: </span></p>
-      <template v-for="chart in order.canvasList">
-        <p><span>ширина: </span> <span>{{ chart.width }}</span></p>
-        <p><span>высота: </span> <span>{{ chart.height }}</span></p>
-        <p><span>x: </span> <span>{{ chart.x }}</span></p>
-        <p><span>y: </span> <span>{{ chart.y }}</span></p>
-        <!--      <p><span>image: </span> <span>{{ chart.img }}</span></p>-->
-      </template>
+      <div class="image-raw">
+        <div v-for="chart in order.canvasList" :key="chart.id" class="image-item">
+          <p><span>Ширина: </span> <span>{{ chart.width }}px</span></p>
+          <p><span>Высота: </span> <span>{{ chart.height }}px</span></p>
+          <p><span>X: </span> <span>{{ chart.x }}px</span></p>
+          <p><span>Y: </span> <span>{{ chart.y }}px</span></p>
+          <!--      <p><span>image: </span> <span>{{ chart.img }}</span></p>-->
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -19,49 +21,46 @@
 <script setup lang="ts">
 import {useOrderStore} from "@/stores/order";
 import {ref} from "vue";
-import buffer from "buffer";
+import {useUserStore} from "@/stores/user";
 
 type Order = {
-  type: { type: string, required: true },
-  canvasList: Array<{
-    id: { type: number, required: true },
-    width: { type: number, required: true },
-    height: { type: number, required: true },
-    x: { type: number, required: true },
-    y: { type: number, required: true },
-    img: { type: buffer, required: true },
-  }>,
-  user: { type: string, ref: 'Role' }
+  type: string
+  count: string
+  canvasList: {
+    id: number
+    width: number
+    height: number
+    x: number
+    y: number
+  }[]
+  user: string
+  userEmail: string
 }
 
 const orderStore = useOrderStore();
+const userStore = useUserStore();
 
-const orderList = ref([])
-const testImage = ref()
+const orderList = ref<Order[] | []>([])
 
-function getTestImage(res) {
-  const bufferedImage = res[0].canvasList[0].img.data
-  // const blobImage = toBase64(bufferedImage.data)
-  const blobImage = new Blob(bufferedImage, {type: 'application/octet-binary'})
-  testImage.value = URL.createObjectURL(blobImage)
-  console.log(testImage.value)
-  // testImage.value ='data:image/png;base64,' + blobImage
-  // console.log(testImage.value)
-}
-
-orderStore.getOrderList().then(res => {
+orderStore.getOrderList().then(async res => {
+  for (const orderItem of res) {
+    const res = await getUser(orderItem.user)
+    console.log(res)
+    orderItem.userEmail = res.email
+  }
+  return res;
+}).then(res => {
   orderList.value = res
-  getTestImage(res)
 })
 
-function toBase64(arr) {
-  return btoa(
-      arr.reduce((data, byte) => data + String.fromCharCode(byte), '')
-  );
-}
-function getRusOrderTypeName(name:string) {
+function getRusOrderTypeName(name: string) {
   if (name === 'cup') return 'Кружка'
+  if (name === 't-shirt') return 'Майка'
   return
+}
+
+async function getUser(id: string) {
+  return await userStore.getUserById(id)
 }
 </script>
 
@@ -76,5 +75,15 @@ function getRusOrderTypeName(name:string) {
   border-radius: 20px
   padding: 20px
 
+  .image-raw
+    display: flex
+
+  .image-item
+    margin-left: 10px
+    margin-top: 10px
+    background-color: #fff
+    width: fit-content
+    padding: 15px
+    border-radius: 10px
 
 </style>
