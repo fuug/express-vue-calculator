@@ -23,6 +23,18 @@ export const useUserStore = defineStore('user', () => {
         }
     }
 
+    async function getUserById(id): Promise<{ name?: string, email?: string, access_token?: string; } | {}> {
+        try {
+            const userRaw = await request('user/get', {id:id})
+            if (userRaw.user)
+                return userRaw.user
+            return {};
+        } catch (e) {
+            console.error(e)
+            return {};
+        }
+    }
+
     async function login(payload: { email: string, password: string }) {
         try {
             const userRaw = await request('auth/login', payload)
@@ -62,7 +74,7 @@ export const useUserStore = defineStore('user', () => {
         })
     }
 
-    return {user, getUser, login, logout, registration}
+    return {user, getUser, getUserById, login, logout, registration}
 })
 
 function setAccessToken(token: string) {
