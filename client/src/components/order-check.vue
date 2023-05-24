@@ -39,12 +39,11 @@ const orderPrice = computed(() => {
 
 const systemStore = useSystemStore();
 const orderStore = useOrderStore();
-const user = useUserStore().user;
+const user = computed(() => useUserStore().user);
 const activeProduct = useProductStore().activeProduct;
 
 async function createOrder() {
-  console.log('asd');
-  if (!user.email) {
+  if (!user.value.email) {
     systemStore.setAuthModal(true);
     watch(user, () => {
       createOrder()
@@ -52,6 +51,7 @@ async function createOrder() {
   } else {
     order.canvasList = props.canvas.chartList;
     order.type = activeProduct.type
+    order.count = count.value
 
     await orderStore.createOrder({order: order});
   }
