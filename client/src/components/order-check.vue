@@ -40,7 +40,7 @@ const orderPrice = computed(() => {
 const systemStore = useSystemStore();
 const orderStore = useOrderStore();
 const user = computed(() => useUserStore().user);
-const activeProduct = useProductStore().activeProduct;
+const activeProduct = computed(()=>useProductStore().activeProduct);
 
 async function createOrder() {
   if (!user.value.email) {
@@ -50,7 +50,7 @@ async function createOrder() {
     })
   } else {
     order.canvasList = props.canvas.chartList;
-    order.type = activeProduct.type
+    order.type = activeProduct.value.type
     order.count = count.value
 
     await orderStore.createOrder({order: order});
